@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Binario - Codifica ASCII & Dati in Tempo Reale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    colors: {
+                        wa: {
+                            teal: '#075e54',
+                            green: '#128c7e',
+                            light: '#25d366',
+                            dark: '#111b21',
+                            panel: '#202c33',
+                            bubbleIn: '#202c33',
+                            bubbleOut: '#005c4b',
+                            input: '#2a3942'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #128c7e;
+        }
+        .glow-green {
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.25);
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.98); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col font-sans overflow-hidden bg-slate-950">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-wa-dark border-b border-slate-800 px-4 py-2.5 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white text-xl shadow-lg shadow-emerald-900/40 font-mono font-bold">
+                <i class="fa-brands fa-whatsapp text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg text-white tracking-tight flex items-center gap-2">
+                    WhatsApp <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono border border-emerald-500/30">BINARIO</span>
+                </h1>
+                <p class="text-xs text-slate-400 hidden sm:block">Convertitore ASCII 8-Bit & Bus Dati in Tempo Reale</p>
+            </div>
+        </div>
+
+        <!-- Navigation / Action Tabs -->
+        <div class="flex items-center space-x-2">
+            <button onclick="switchTab('chat')" id="tab-btn-chat" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-comments"></i>
+                <span class="hidden md:inline">Trasmettitore Chat</span>
+            </button>
+            <button onclick="switchTab('challenges')" id="tab-btn-challenges" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 transition relative">
+                <i class="fa-solid fa-gamepad text-amber-400"></i>
+                <span class="hidden md:inline">Sfide & Quiz</span>
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping absolute -top-0.5 -right-0.5"></span>
+            </button>
+            <button onclick="toggleAsciiTableModal()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-indigo-300 hover:bg-slate-700 flex items-center gap-1.5 border border-slate-700 transition">
+                <i class="fa-solid fa-table"></i>
+                <span class="hidden sm:inline">Tabella ASCII</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Left Sidebar: Chat Contacts & Presets -->
+        <aside class="w-80 bg-wa-panel border-r border-slate-800 flex flex-col shrink-0 hidden lg:flex">
+
+            <!-- Contacts List -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-slate-800/50" id="contacts-list">
+                <!-- Contact Item 1 -->
+                <button onclick="selectContact('group')" id="contact-group" class="w-full p-3 flex items-start space-x-3 text-left bg-slate-800/60 hover:bg-slate-800/80 transition relative border-l-4 border-emerald-500">
+                    <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center font-bold text-white text-sm shrink-0">
+                        👥
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline">
+                            <h4 class="text-xs font-bold text-slate-200 truncate">Gruppo Classe 2B</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-400 truncate mt-0.5 font-mono">Nessun messaggio</p>
+                    </div>
+                </button>
+
+                <!-- Contact Item 2 -->
+                <button onclick="selectContact('mamma')" id="contact-mamma" class="w-full p-3 flex items-start space-x-3 text-left hover:bg-slate-800/50 transition border-l-4 border-transparent">
+                    <div class="w-10 h-10 rounded-full bg-rose-600 flex items-center justify-center font-bold text-white text-sm shrink-0">
+                        👩
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline">
+                            <h4 class="text-xs font-bold text-slate-200 truncate">Mamma</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-400 truncate mt-0.5 font-mono">Nessun messaggio</p>
+                    </div>
+                </button>
+            </div>
+
+            <!-- ASCII Quick Cheat Widget -->
+            <div class="p-3 bg-wa-dark border-t border-slate-800 text-xs text-slate-400 space-y-2">
+                <div class="font-bold text-slate-300 flex items-center justify-between">
+                    <span><i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i> Ricorda:</span>
+                    <span class="font-mono text-[10px] text-emerald-400">1 Byte = 8 Bit</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1 text-[11px] font-mono bg-slate-900 p-2 rounded border border-slate-800">
+                    <div>'A' = 65 = 01000001</div>
+                    <div>'a' = 97 = 01100001</div>
+                    <div>'0' = 48 = 00110000</div>
+                    <div>' ' = 32 = 00100000</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Chat Area (View 1) -->
+        <main id="view-chat" class="flex-1 flex flex-col bg-slate-950 relative overflow-hidden">
+            <!-- Active Chat Header -->
+            <div class="bg-wa-panel px-4 py-2.5 flex items-center justify-between border-b border-slate-800 shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div id="active-avatar" class="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center font-bold text-white text-sm">
+                        👥
+                    </div>
+                    <div>
+                        <h3 id="active-name" class="text-sm font-bold text-slate-100">Gruppo Classe 2B</h3>
+                        <p class="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Online • Bit Stream Attivo (ASCII 8-Bit)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3 text-slate-400 text-sm">
+                    <button onclick="clearCurrentChat()" title="Cancella Chat" class="hover:text-rose-400 transition">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Stream Area -->
+            <div id="messages-container" class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 bg-slate-950 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
+                <!-- Messages injected via JS -->
+            </div>
+
+            <!-- Live ASCII / Binary Preview Bar above Input -->
+            <div id="live-preview-bar" class="hidden bg-slate-900 border-t border-slate-800 px-4 py-2 flex flex-col gap-1 text-xs">
+                <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                    <span class="flex items-center gap-1 text-emerald-400 font-semibold">
+                        <i class="fa-solid fa-microchip"></i> Anteprima Trasmissione ASCII
+                    </span>
+                    <span id="live-char-count">0 caratteri = 0 Byte (0 Bit)</span>
+                </div>
+                <!-- Real time bits preview grid -->
+                <div id="live-bits-preview" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-1 font-mono text-[11px]">
+                    <!-- Bits chips injected live -->
+                </div>
+            </div>
+
+            <!-- Input Bar -->
+            <div class="bg-wa-panel p-3 border-t border-slate-800 flex items-center space-x-2 shrink-0">
+                <input type="text" id="message-input" placeholder="Scrivi un messaggio... (vedi la conversione in tempo reale)" autofocus
+                    oninput="handleLiveTyping()" onkeydown="if(event.key==='Enter') sendMessage()"
+                    class="flex-1 bg-wa-input text-sm text-slate-100 placeholder-slate-400 px-4 py-2.5 rounded-xl border border-slate-700/60 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+
+                <button onclick="sendMessage()" class="w-11 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center transition shadow-lg shadow-emerald-900/30 shrink-0">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </div>
+        </main>
+
+        <!-- Quiz & Challenge View (View 2) -->
+        <main id="view-challenges" class="flex-1 flex flex-col bg-slate-950 p-4 md:p-6 overflow-y-auto custom-scrollbar hidden">
+            <div class="max-w-3xl mx-auto w-full space-y-6">
+                <!-- Score Header -->
+                <div class="bg-gradient-to-r from-emerald-900/60 to-teal-900/60 border border-emerald-500/30 rounded-2xl p-5 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-400"></i>
+                            Sfide & Messaggi Segreti WhatsApp
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-1">
+                            Decodifica i messaggi ricevuti dai tuoi compagni per accumulare punti!
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 font-mono uppercase">Punteggio</div>
+                        <div id="quiz-score" class="text-3xl font-black font-mono text-amber-400">0</div>
+                    </div>
+                </div>
+
+                <!-- Challenge Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center space-x-3">
+                            <span id="quiz-sender-avatar" class="text-2xl">👩</span>
+                            <div>
+                                <h3 id="quiz-sender-name" class="font-bold text-slate-100 text-sm">Mamma</h3>
+                                <p class="text-[11px] text-slate-400">Ti ha inviato un messaggio segreto in codice binario!</p>
+                            </div>
+                        </div>
+                        <span id="quiz-difficulty" class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono border border-emerald-500/30">
+                            Livello 1
+                        </span>
+                    </div>
+
+                    <!-- Secret Binary Message Display -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-emerald-400 text-sm break-all leading-relaxed" id="quiz-binary-display">
+                        01010000 01001001 01011010 01011010 01000001
+                    </div>
+
+                    <!-- Student Answer Form -->
+                    <div class="space-y-3">
+                        <label class="block text-xs font-medium text-slate-300">
+                            Cosa ha scritto Mamma? Scrivi il testo tradotto:
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="quiz-answer-input" placeholder="es. PIZZA" onkeydown="if(event.key==='Enter') submitQuizAnswer()"
+                                class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono font-bold uppercase focus:outline-none focus:border-emerald-500">
+                            <button onclick="submitQuizAnswer()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow flex items-center gap-1.5">
+                                <span>Verifica</span>
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Feedback Banner -->
+                    <div id="quiz-feedback" class="hidden p-4 rounded-xl text-xs transition"></div>
+
+                    <!-- Next Question Button -->
+                    <div class="flex justify-between items-center pt-2">
+                        <button onclick="giveQuizHint()" class="text-xs text-amber-400 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-lightbulb"></i> Serve un aiuto?
+                        </button>
+                        <button onclick="nextQuizQuestion()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-2">
+                            <span>Prossimo Messaggio</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Character Bit Inspector -->
+    <div id="modal-bit-inspector" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
+            <button onclick="closeInspectorModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center space-x-3 border-b border-slate-800 pb-3">
+                <div id="insp-char-badge" class="w-12 h-12 rounded-xl bg-emerald-600 text-white font-mono font-black text-2xl flex items-center justify-center shadow-lg">
+                    A
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Dettaglio codifica</h3>
+                    
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div class="text-[10px] text-slate-400 font-mono uppercase">Codice Decimale</div>
+                    <div id="insp-dec" class="text-xl font-bold font-mono text-emerald-400">65</div>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div class="text-[10px] text-slate-400 font-mono uppercase">Esadecimale</div>
+                    <div id="insp-hex" class="text-xl font-bold font-mono text-indigo-400">0x41</div>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div class="text-[10px] text-slate-400 font-mono uppercase">Stato Bit</div>
+                    <div id="insp-on-count" class="text-xl font-bold font-mono text-amber-400">2 ON / 6 OFF</div>
+                </div>
+            </div>
+
+            <!-- 8 Bit Cards Visualizer -->
+            <div class="space-y-2">
+                <div class="text-xs font-mono text-slate-400 uppercase text-center">Posizione Potenze di 2 (Da MSB a LSB):</div>
+                <div id="insp-bit-cards" class="grid grid-cols-8 gap-1.5">
+                    <!-- 8 Bit Cards injected via JS -->
+                </div>
+            </div>
+
+            <!-- Mathematical Formula -->
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 text-center" id="insp-formula">
+                64 + 1 = 65 ('A')
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Searchable ASCII Table -->
+    <div id="modal-ascii-table" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-table text-indigo-400"></i>
+                    Tabella di Decodifica ASCII (0-127)
+                </h3>
+                <button onclick="toggleAsciiTableModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <input type="text" id="ascii-table-search" oninput="filterAsciiTable()" placeholder="Cerca carattere o numero decimale..."
+                    class="w-full bg-slate-950 border border-slate-700 text-xs text-slate-200 px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar border border-slate-800 rounded-xl">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead class="bg-slate-950 text-indigo-400 sticky top-0 border-b border-slate-800">
+                        <tr>
+                            <th class="p-2.5">Carattere</th>
+                            <th class="p-2.5">Decimale</th>
+                            <th class="p-2.5">Esadecimale</th>
+                            <th class="p-2.5">Binario (8-Bit)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ascii-table-body" class="divide-y divide-slate-800/60 text-slate-300">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- App JavaScript Logic -->
+    <script>
+        // Bit Weights array (Bit 7 down to Bit 0)
+        const BIT_WEIGHTS = [128, 64, 32, 16, 8, 4, 2, 1];
+
+        // Sample Quiz Challenges
+        const QUIZ_CHALLENGES = [
+            { sender: 'Mamma', avatar: '👩', text: 'PIZZA', difficulty: 'Facile' },
+            { sender: 'Gruppo Classe 2B', avatar: '👥', text: 'WIFI', difficulty: 'Medio' },
+            { sender: 'Marco', avatar: '👦', text: 'LOL', difficulty: 'Facile' },
+            { sender: 'Gruppo Classe 2B', avatar: '👥', text: 'PAUSA', difficulty: 'Medio' }
+        ];
+
+        // Store active state
+        let currentTab = 'chat';
+        let currentContact = 'group';
+        let quizScore = 0;
+        let currentQuizIndex = 0;
+
+        // In-memory chat messages database (VUOTE)
+        const chatStore = {
+            group: [],
+            mamma: []
+        };
+
+        // Utility: Convert string to 8-bit binary array
+        function stringToBinaryStream(str) {
+            return str.split('').map(char => {
+                const dec = char.charCodeAt(0);
+                return {
+                    char: char,
+                    dec: dec,
+                    hex: '0x' + dec.toString(16).toUpperCase().padStart(2, '0'),
+                    binary: dec.toString(2).padStart(8, '0')
+                };
+            });
+        }
+
+        // UI Tab Switcher
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('view-chat').classList.add('hidden');
+            document.getElementById('view-challenges').classList.add('hidden');
+
+            document.getElementById('tab-btn-chat').className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 transition";
+            document.getElementById('tab-btn-challenges').className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 transition relative";
+
+            if (tab === 'chat') {
+                document.getElementById('view-chat').classList.remove('hidden');
+                document.getElementById('tab-btn-chat').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white flex items-center gap-1.5 transition shadow";
+            } else if (tab === 'challenges') {
+                document.getElementById('view-challenges').classList.remove('hidden');
+                document.getElementById('tab-btn-challenges').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white flex items-center gap-1.5 transition shadow";
+                renderQuizQuestion();
+            }
+        }
+
+        // Handle Live Typing Preview in Chat
+        function handleLiveTyping() {
+            const input = document.getElementById('message-input').value;
+            const previewBar = document.getElementById('live-preview-bar');
+            const bitsContainer = document.getElementById('live-bits-preview');
+            const countEl = document.getElementById('live-char-count');
+
+            if (!input) {
+                previewBar.classList.add('hidden');
+                return;
+            }
+
+            previewBar.classList.remove('hidden');
+            const parsed = stringToBinaryStream(input);
+
+            countEl.textContent = `${parsed.length} caratteri = ${parsed.length} Byte (${parsed.length * 8} Bit)`;
+            bitsContainer.innerHTML = '';
+
+            parsed.forEach(item => {
+                const chip = document.createElement('div');
+                chip.className = "flex items-center gap-1 bg-slate-950 border border-slate-700/80 rounded-md px-2 py-1 shrink-0 cursor-pointer hover:border-emerald-500 transition";
+                chip.onclick = () => openInspectorModal(item.char);
+                chip.innerHTML = `
+                    <span class="font-bold text-white bg-emerald-700 px-1.5 rounded text-[10px]">${item.char === ' ' ? '␣' : item.char}</span>
+                    <span class="text-emerald-400 font-mono text-[10px]">${item.binary}</span>
+                `;
+                bitsContainer.appendChild(chip);
+            });
+        }
+
+        // Send Message in Active Chat
+        function sendMessage() {
+            const inputEl = document.getElementById('message-input');
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            // Add to active chat array
+            chatStore[currentContact].push({
+                id: Date.now(),
+                sender: 'me',
+                text: text,
+                time: timeStr
+            });
+
+            inputEl.value = '';
+            handleLiveTyping();
+            renderMessages();
+
+
+        }
+
+        // Render Chat Messages
+        function renderMessages() {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '';
+
+            const list = chatStore[currentContact] || [];
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="h-full flex items-center justify-center text-slate-500 font-mono text-xs">
+                        Nessun messaggio in questa chat. Inizia a scrivere!
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(msg => {
+                const isMe = (msg.sender === 'me');
+                const parsed = stringToBinaryStream(msg.text);
+                const binaryFullStr = parsed.map(p => p.binary).join(' ');
+
+                const msgBubble = document.createElement('div');
+                msgBubble.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} my-2`;
+
+                let binaryChipsHTML = '';
+                parsed.forEach(p => {
+                    binaryChipsHTML += `
+                        <button onclick="openInspectorModal('${p.char.replace(/'/g, "\\'")}')"
+                            title="Clicca per ispezionare il carattere '${p.char}'"
+                            class="inline-flex items-center gap-1 bg-slate-950/80 hover:bg-emerald-950 border border-slate-700/60 hover:border-emerald-500 rounded px-1.5 py-0.5 text-[10px] font-mono transition">
+                            <span class="text-emerald-300 font-bold">${p.char === ' ' ? '␣' : p.char}</span>
+                            <span class="text-slate-400 text-[9px]">${p.binary}</span>
+                        </button>
+                    `;
+                });
+
+                msgBubble.innerHTML = `
+                    <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 shadow-lg ${
+                        isMe ? 'bg-wa-bubbleOut border border-emerald-600/30 text-white rounded-br-none' : 'bg-wa-bubbleIn border border-slate-700/50 text-slate-100 rounded-bl-none'
+                    }">
+                        <!-- Text Content -->
+                        <div class="text-sm font-medium tracking-wide break-words">${escapeHTML(msg.text)}</div>
+
+                        <!-- ASCII Binary Stream Breakdown -->
+                        <div class="mt-2.5 pt-2 border-t border-white/10 space-y-1.5">
+                            <div class="flex items-center justify-between text-[10px] text-emerald-300 font-mono">
+                                <span><i class="fa-solid fa-network-wired text-emerald-400"></i> ASCII 8-Bit Stream:</span>
+                                <button onclick="copyToClipboard('${binaryFullStr}')" class="hover:underline text-slate-300">
+                                    <i class="fa-solid fa-copy"></i> Copia Bit
+                                </button>
+                            </div>
+                            <div class="flex flex-wrap gap-1">
+                                ${binaryChipsHTML}
+                            </div>
+                        </div>
+
+                        <!-- Time stamp -->
+                        <div class="text-[10px] text-slate-400 text-right mt-1 font-mono">
+                            ${msg.time} ${isMe ? '<i class="fa-solid fa-check-double text-emerald-400 ml-1"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(msgBubble);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function selectContact(contactKey) {
+            currentContact = contactKey;
+
+            // Update sidebar buttons visual active state
+            document.getElementById('contact-group').className = "w-full p-3 flex items-start space-x-3 text-left hover:bg-slate-800/50 transition border-l-4 " +
+                (contactKey === 'group' ? 'bg-slate-800/60 border-emerald-500' : 'border-transparent');
+            document.getElementById('contact-mamma').className = "w-full p-3 flex items-start space-x-3 text-left hover:bg-slate-800/50 transition border-l-4 " +
+                (contactKey === 'mamma' ? 'bg-slate-800/60 border-emerald-500' : 'border-transparent');
+
+            // Update active header
+            const nameEl = document.getElementById('active-name');
+            const avatarEl = document.getElementById('active-avatar');
+
+            if (contactKey === 'group') {
+                nameEl.textContent = 'Gruppo Classe 2B';
+                avatarEl.textContent = '👥';
+            } else if (contactKey === 'mamma') {
+                nameEl.textContent = 'Mamma';
+                avatarEl.textContent = '👩';
+            }
+
+            renderMessages();
+        }
+
+        // Quiz & Challenge Logic
+        function renderQuizQuestion() {
+            const q = QUIZ_CHALLENGES[currentQuizIndex];
+            document.getElementById('quiz-sender-name').textContent = q.sender;
+            document.getElementById('quiz-sender-avatar').textContent = q.avatar;
+            document.getElementById('quiz-difficulty').textContent = q.difficulty;
+
+            const binaryStr = stringToBinaryStream(q.text).map(x => x.binary).join(' ');
+            document.getElementById('quiz-binary-display').textContent = binaryStr;
+
+            document.getElementById('quiz-answer-input').value = '';
+            document.getElementById('quiz-feedback').className = 'hidden';
+        }
+
+        function submitQuizAnswer() {
+            const input = document.getElementById('quiz-answer-input').value.trim().toUpperCase();
+            const q = QUIZ_CHALLENGES[currentQuizIndex];
+            const fb = document.getElementById('quiz-feedback');
+
+            if (!input) return;
+
+            if (input === q.text) {
+                quizScore += 10;
+                document.getElementById('quiz-score').textContent = quizScore;
+                fb.className = "block bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 p-4 rounded-xl space-y-1";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-circle-check text-lg"></i> Corretto! Bravissimo!
+                    </div>
+                    <div>Hai decodificato correttamente: <strong>${q.text}</strong> (+10 Punti)</div>
+                `;
+            } else {
+                fb.className = "block bg-rose-500/20 text-rose-300 border border-rose-500/40 p-4 rounded-xl space-y-1";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-circle-xmark text-lg"></i> Risposta errata.
+                    </div>
+                    <div>Hai scritto <strong>${input}</strong>, ma la parola corretta era <strong>${q.text}</strong>.</div>
+                `;
+            }
+        }
+
+        function giveQuizHint() {
+            const q = QUIZ_CHALLENGES[currentQuizIndex];
+            const fb = document.getElementById('quiz-feedback');
+            fb.className = "block bg-amber-500/20 text-amber-300 border border-amber-500/40 p-3 rounded-xl text-xs";
+            fb.innerHTML = `<i class="fa-solid fa-lightbulb"></i> Suggerimento: La parola contiene <strong>${q.text.length} lettere</strong> e la prima lettera è <strong>'${q.text[0]}'</strong>.`;
+        }
+
+        function nextQuizQuestion() {
+            currentQuizIndex = (currentQuizIndex + 1) % QUIZ_CHALLENGES.length;
+            renderQuizQuestion();
+        }
+
+        // Bit Inspector Modal
+        function openInspectorModal(char) {
+            const modal = document.getElementById('modal-bit-inspector');
+            const charBadge = document.getElementById('insp-char-badge');
+            const decEl = document.getElementById('insp-dec');
+            const hexEl = document.getElementById('insp-hex');
+            const countEl = document.getElementById('insp-on-count');
+            const bitCardsContainer = document.getElementById('insp-bit-cards');
+            const formulaEl = document.getElementById('insp-formula');
+
+            const dec = char.charCodeAt(0);
+            const binaryStr = dec.toString(2).padStart(8, '0');
+            const bits = binaryStr.split('').map(Number);
+
+            charBadge.textContent = char === ' ' ? 'SPAZIO' : char;
+            if (char === ' ') charBadge.classList.add('text-sm'); else charBadge.classList.remove('text-sm');
+
+            decEl.textContent = dec;
+            hexEl.textContent = '0x' + dec.toString(16).toUpperCase().padStart(2, '0');
+
+            const activeCount = bits.filter(b => b === 1).length;
+            countEl.textContent = `${activeCount} ON / ${8 - activeCount} OFF`;
+
+            bitCardsContainer.innerHTML = '';
+            let sumParts = [];
+
+            bits.forEach((b, idx) => {
+                const w = BIT_WEIGHTS[idx];
+                const isOn = (b === 1);
+                if (isOn) sumParts.push(w);
+
+                const card = document.createElement('div');
+                card.className = `flex flex-col items-center justify-between p-2 rounded-xl font-mono text-center transition border ${
+                    isOn
+                        ? 'bg-white text-slate-900 border-emerald-400 font-bold shadow-lg shadow-white/10'
+                        : 'bg-slate-950 text-slate-500 border-slate-800'
+                }`;
+                card.innerHTML = `
+                    <span class="text-[9px] ${isOn ? 'text-slate-500' : 'text-slate-600'}">${w}</span>
+                    <span class="text-xl font-black">${b}</span>
+                    <span class="text-[8px] uppercase font-bold px-1 rounded ${isOn ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'}">
+                        ${isOn ? '1' : '0'}
+                    </span>
+                `;
+                bitCardsContainer.appendChild(card);
+            });
+
+            formulaEl.textContent = sumParts.length > 0 ? `${sumParts.join(' + ')} = ${dec} ('${char}')` : `0 = ${dec}`;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeInspectorModal() {
+            document.getElementById('modal-bit-inspector').classList.add('hidden');
+        }
+
+        // ASCII Table Modal
+        function toggleAsciiTableModal() {
+            const modal = document.getElementById('modal-ascii-table');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderAsciiTable();
+            }
+        }
+
+        function renderAsciiTable() {
+            const tbody = document.getElementById('ascii-table-body');
+            tbody.innerHTML = '';
+
+            for (let i = 32; i <= 126; i++) {
+                const char = String.fromCharCode(i);
+                const hex = '0x' + i.toString(16).toUpperCase().padStart(2, '0');
+                const bin = i.toString(2).padStart(8, '0');
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/50 transition";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-emerald-400">${i === 32 ? '[SPAZIO]' : char}</td>
+                    <td class="p-2.5">${i}</td>
+                    <td class="p-2.5 text-indigo-300">${hex}</td>
+                    <td class="p-2.5 text-slate-200 font-semibold">${bin}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function filterAsciiTable() {
+            const query = document.getElementById('ascii-table-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#ascii-table-body tr');
+
+            rows.forEach(r => {
+                const text = r.textContent.toLowerCase();
+                r.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        // Clipboard Helper
+        function copyToClipboard(text) {
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+
+            showToast('Copiato negli appunti!');
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 bg-emerald-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-2xl z-50 transition transform duration-300 flex items-center gap-2";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${msg}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 2000);
+        }
+
+        function clearCurrentChat() {
+            chatStore[currentContact] = [];
+            renderMessages();
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g,
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            selectContact('group');
+        };
+    </script>
+</body>
+</html>
