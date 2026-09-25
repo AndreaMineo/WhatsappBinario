@@ -41,14 +41,8 @@ L'applicazione è sviluppata in un **unico file HTML autonoma** (client-side), s
 ### Esecuzione Locale
 Scarica il file del progetto e apri `index.html` con qualsiasi browser web.
 
-### Pubblicazione su GitHub Pages
-Per renderla disponibile alla classe online:
-1. Crea una repository su GitHub e carica il file rinominandolo in `index.html`.
-2. Vai su **Settings** > **Pages** e seleziona il branch `main` come sorgente.
-3. L'applicazione sarà subito accessibile tramite il link generato da GitHub Pages.
-
 ---
 
 ## 📜 Licenza
 
-Rilasciato sotto licenza **MIT**[cite: 2]. Libero da utilizzare, distribuire e riutilizzare per scopi didattici e formativi[cite: 2].
+Rilasciato sotto licenza **MIT**. Libero da utilizzare, distribuire e riutilizzare per scopi didattici e formativi.
